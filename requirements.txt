@@ -1,46 +1,39 @@
-# streamlit>=1.32.0
 streamlit==1.39.0
-pandas
-PyPDF2
-openpyxl
-faiss-cpu
-transformers
-sentence-transformers
-langchain
-langchain-community
-python-docx
-langchain-huggingface
-hf_xet
-llama-index-core==0.10.30
-#llama-index==0.10.55
-llama-index-llms-openai
-llama-index-embeddings-openai
-openai>=1.3.5
-llama-index-readers-file
-#llama-index-llms-openai
-#llama-index-llms-huggingface
-#llama-index-embeddings-huggingface
-accelerate
-torch 
-docx2txt
-selenium
-webdriver-manager
 
-#openai>=1.3.5
-#llama-index==0.10.55
-#llama-index-llms-openai
-#llama-index-embeddings-openai
-numpy
-#pandas
-#python-docx
-pdfminer.six
-pillow
-#faiss-cpu
-tqdm
-requests
-unstructured[pdf]
-tenacity
-beautifulsoup4
+# Core AI
+openai==1.12.0
+llama-index-core==0.10.30
+llama-index-llms-openai==0.1.14
+llama-index-embeddings-openai==0.1.9
+llama-index-readers-file==0.1.11
+
+# File handling
+pandas==2.2.2
+openpyxl==3.1.2
+PyPDF2==3.0.1
+python-docx==1.1.0
+docx2txt==0.8
+pdfminer.six==20231228
+pillow==10.2.0
+
+# Utilities
+numpy==1.26.4
+requests==2.31.0
+tqdm==4.66.2
+tenacity==8.2.3
+beautifulsoup4==4.12.3
+
+# Selenium (optional – only if you truly need it)
+selenium==4.18.1
+webdriver-manager==4.0.1
+
+
+
+
+
+
+
+
 
 
 
