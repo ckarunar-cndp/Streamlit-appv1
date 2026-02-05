@@ -12,6 +12,12 @@ from llama_index.core.node_parser import SentenceSplitter
 import openai
 
 # ---------------- Page Setup ----------------
+st.set_page_config(
+    page_title="🖤 CNDP Consulting AI Assistant",
+    page_icon="🤖",
+    layout="centered",
+    initial_sidebar_state="collapsed"  # sidebar closed by default for Squarespace embed
+) 
 
 # ---------------- Custom Dark Theme ----------------
 st.markdown(
@@ -125,9 +131,6 @@ with st.sidebar:
     def clear_chat_history():
         st.session_state.messages = [{"role": "assistant", "content": "👋 Chat cleared. How may I help you today?"}]
     st.button("🧹 Clear Chat", on_click=clear_chat_history)
-st.set_page_config(
-    initial_sidebar_state="collapsed"
-)
 # ---------------- Load Knowledge Base ----------------
 @st.cache_resource(show_spinner=False)
 def load_index():
