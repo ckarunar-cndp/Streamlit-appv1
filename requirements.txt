@@ -26,11 +26,12 @@ beautifulsoup4==4.12.3
 # Selenium 
 selenium==4.18.1
 webdriver-manager==4.0.1
-faiss-cpu==1.7.4
+faiss-cpu
 torch
 unstructured[pdf]
 hf_xet
 webdriver-manager
+
 
 
 
