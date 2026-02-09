@@ -6,9 +6,9 @@ faiss-cpu>=1.7.0
 transformers>=4.30.0
 sentence-transformers>=2.2.0
 langchain==0.1.20
-langchain-community==0.1.20
+langchain-community==0.0.20
 python-docx>=0.8.11
-langchain-huggingface==0.0.1
+langchain-huggingface>=0.0.1
 hf_xet>=0.4.0
 llama-index-core==0.10.30
 llama-index-llms-openai>=0.1.0
