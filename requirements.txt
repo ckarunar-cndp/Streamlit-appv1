@@ -2,6 +2,7 @@ streamlit==1.39.0
 pandas>=1.5.0
 PyPDF2>=3.0.0
 openpyxl>=3.0.0
+openai
 faiss-cpu>=1.7.0
 transformers>=4.30.0
 sentence-transformers>=2.2.0
@@ -10,6 +11,7 @@ langchain-community>=0.0.1,<0.1.0
 python-docx>=0.8.11
 langchain-huggingface>=0.0.1
 hf_xet>=0.4.0
+llama-index
 llama-index-core==0.10.30
 llama-index-llms-openai>=0.1.0
 llama-index-embeddings-openai>=0.1.0
