@@ -138,7 +138,7 @@ def load_index():
         reader = SimpleDirectoryReader(input_dir="./documents", recursive=True)
         docs = reader.load_data()
 
-        Settings.llm = OpenAI(model="gpt-4-turbo")
+        Settings.llm = OpenAI(model="gpt-5.6-sol")
         Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
         Settings.node_parser = SentenceSplitter(chunk_size=512, chunk_overlap=20)
 
