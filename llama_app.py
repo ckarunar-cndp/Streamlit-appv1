@@ -57,6 +57,9 @@ from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.node_parser import SentenceSplitter
 import openai
+import hashlib
+import logging
+from llama_index.readers.file import DocxReader
 
 # ---------------- Page Setup ----------------
 st.set_page_config(
@@ -153,7 +156,13 @@ st.markdown(
 
 
 # ---------------- API Key Setup ----------------
-openai.api_key = os.getenv("OPENAI_API_KEY") or st.text_input("🔑 Enter your OpenAI API Key", type="password")
+api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", "")
+if not api_key:
+    api_key = st.text_input("🔑 Enter your OpenAI API Key", type="password")
+if not api_key:
+    st.info("Enter an OpenAI API key to load the knowledge base.")
+    st.stop()
+openai.api_key = api_key
 
 # ---------------- Session Management ----------------
 if "messages" not in st.session_state:
@@ -177,23 +186,77 @@ with st.sidebar:
 
     def clear_chat_history():
         st.session_state.messages = [{"role": "assistant", "content": "👋 Chat cleared. How may I help you today?"}]
+        if st.session_state.chat_engine is not None:
+            st.session_state.chat_engine.reset()
     st.button("🧹 Clear Chat", on_click=clear_chat_history)
 # ---------------- Load Knowledge Base ----------------
+DOCUMENTS_DIR = Path(__file__).resolve().parent / "documents"
+
+
+def knowledge_signature():
+    if not DOCUMENTS_DIR.is_dir():
+        raise ValueError("Create a documents folder next to llama_app.py.")
+    files = sorted(
+        p for p in DOCUMENTS_DIR.rglob("*")
+        if p.is_file() and not p.name.startswith((".", "~$"))
+    )
+    if not files:
+        raise ValueError("The documents folder is empty.")
+    return tuple(
+        (str(p.relative_to(DOCUMENTS_DIR)), hashlib.sha256(p.read_bytes()).hexdigest())
+        for p in files
+    )
+
+
 @st.cache_resource(show_spinner=False)
-def load_index():
+def load_index(signature, credential_fingerprint, _api_key):
+    # signature invalidates the cache whenever knowledge files change.
+    reader = SimpleDirectoryReader(
+        input_dir=str(DOCUMENTS_DIR),
+        recursive=True,
+        exclude=["**/~$*"],
+        file_extractor={".docx": DocxReader()},
+        raise_on_error=True,
+    )
+    docs = reader.load_data()
+    if not docs or any(not doc.text.strip() for doc in docs):
+        raise ValueError("A knowledge document contains no readable text. Check extraction or OCR.")
+    for doc in docs:
+        # Counts provide diagnostics without exposing document contents in logs.
+        logging.getLogger(__name__).warning(
+            "Knowledge source: %s; extracted characters: %d",
+            doc.metadata.get("file_name", "unknown"), len(doc.text),
+        )
+    llm = OpenAI(model="gpt-5.6-sol", api_key=_api_key)
+    embed_model = OpenAIEmbedding(model="text-embedding-3-small", api_key=_api_key)
+    index = VectorStoreIndex.from_documents(
+        docs,
+        embed_model=embed_model,
+        transformations=[SentenceSplitter(chunk_size=512, chunk_overlap=50)],
+    )
+    return index, llm
+
+
+try:
+    signature = knowledge_signature()
+    credential_fingerprint = hashlib.sha256(api_key.encode()).hexdigest()
+    engine_key = (signature, credential_fingerprint)
     with st.spinner("⚙️ Loading CNDP knowledge base... please wait."):
-        reader = SimpleDirectoryReader(input_dir="./documents", recursive=True)
-        docs = reader.load_data()
-
-        Settings.llm = OpenAI(model="gpt-5.6-sol")
-        Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
-        Settings.node_parser = SentenceSplitter(chunk_size=512, chunk_overlap=20)
-
-        return VectorStoreIndex.from_documents(docs)
-
-if st.session_state.chat_engine is None:
-    index = load_index()
-    st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=False)
+        index, llm = load_index(signature, credential_fingerprint, api_key)
+    if (st.session_state.chat_engine is None
+            or st.session_state.get("engine_key") != engine_key):
+        st.session_state.chat_engine = index.as_chat_engine(
+            chat_mode="condense_question", llm=llm,
+            similarity_top_k=5, verbose=False,
+        )
+        st.session_state.engine_key = engine_key
+        st.session_state.messages = [
+            {"role": "assistant", "content": "👋 Welcome! How may I assist you today?"}
+        ]
+except Exception:
+    logging.getLogger(__name__).exception("Knowledge base initialization failed")
+    st.error("Could not load the knowledge base. Check the application logs for details.")
+    st.stop()
 
 # ---------------- FAQ Section ----------------
 st.markdown("---")
