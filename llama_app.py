@@ -1,3 +1,11 @@
+from importlib.metadata import version
+import llama_index.core as llama_core
+
+print("llama-index:", version("llama-index"))
+print("llama-index-core:", version("llama-index-core"))
+print("Core location:", llama_core.__file__)
+print("VectorStoreIndex available:", hasattr(llama_core, "VectorStoreIndex"))
+
 import os
 import streamlit as st
 from PIL import Image
