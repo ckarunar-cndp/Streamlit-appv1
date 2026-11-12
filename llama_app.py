@@ -219,18 +219,28 @@ def load_index(signature, credential_fingerprint, _api_key):
         raise_on_error=True,
     )
     docs = reader.load_data()
-    if not docs or any(not doc.text.strip() for doc in docs):
-        raise ValueError("A knowledge document contains no readable text. Check extraction or OCR.")
+    logger = logging.getLogger(__name__)
+    valid_docs = []
     for doc in docs:
-        # Counts provide diagnostics without exposing document contents in logs.
-        logging.getLogger(__name__).warning(
-            "Knowledge source: %s; extracted characters: %d",
-            doc.metadata.get("file_name", "unknown"), len(doc.text),
+        source = doc.metadata.get("file_path") or doc.metadata.get("file_name", "unknown")
+        extracted_text = (doc.text or "").strip()
+        if not extracted_text:
+            logger.warning("Skipping knowledge document with no readable text: %s", source)
+            continue
+        logger.info("Knowledge source: %s; extracted characters: %d", source, len(extracted_text))
+        valid_docs.append(doc)
+
+    if not valid_docs:
+        raise ValueError(
+            "No readable knowledge documents found. Check the documents folder "
+            "and extraction support for its file types."
         )
+    logger.info("Indexing %d readable document(s); skipped %d empty document(s)",
+                len(valid_docs), len(docs) - len(valid_docs))
     llm = OpenAI(model="gpt-5.6-sol", api_key=_api_key)
     embed_model = OpenAIEmbedding(model="text-embedding-3-small", api_key=_api_key)
     index = VectorStoreIndex.from_documents(
-        docs,
+        valid_docs,
         embed_model=embed_model,
         transformations=[SentenceSplitter(chunk_size=512, chunk_overlap=50)],
     )
