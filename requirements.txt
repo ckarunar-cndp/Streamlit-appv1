@@ -28,7 +28,7 @@ hf_xet>=0.4.0
 # llama-index-core
 # llama-index-llms-openai
 # llama-index-embeddings-openai
-# llama-index-readers-file
+llama-index-readers-file
 llama-index
 # openai
 nltk==3.10.4
