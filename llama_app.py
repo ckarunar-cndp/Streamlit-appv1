@@ -1,11 +1,50 @@
-from importlib.metadata import version
-import llama_index.core as llama_core
 
-print("llama-index:", version("llama-index"))
-print("llama-index-core:", version("llama-index-core"))
-print("Core location:", llama_core.__file__)
-print("VectorStoreIndex available:", hasattr(llama_core, "VectorStoreIndex"))
 
+# from importlib.metadata import version
+# import llama_index.core as llama_core
+
+# print("llama-index:", version("llama-index"))
+# print("llama-index-core:", version("llama-index-core"))
+# print("Core location:", llama_core.__file__)
+# print("VectorStoreIndex available:", hasattr(llama_core, "VectorStoreIndex"))
+
+import os
+from pathlib import Path
+
+# Use a private data directory owned by the running app.
+nltk_dir = Path.home() / ".cache" / "streamlit_nltk"
+nltk_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+nltk_dir.chmod(0o700)
+
+os.environ["NLTK_DATA"] = str(nltk_dir)
+
+import nltk
+
+if str(nltk_dir) not in nltk.data.path:
+    nltk.data.path.insert(0, str(nltk_dir))
+
+for package, resource in [
+    ("stopwords", "corpora/stopwords"),
+    ("punkt_tab", "tokenizers/punkt_tab"),
+]:
+    try:
+        nltk.data.find(resource, paths=[str(nltk_dir)])
+    except LookupError:
+        nltk.download(
+            package,
+            download_dir=str(nltk_dir),
+            quiet=True,
+            raise_on_error=True,
+        )
+
+# Keep your existing imports below this point.
+# import streamlit as st
+# from llama_index.core import (
+#    VectorStoreIndex,
+#    SimpleDirectoryReader,
+#    Settings,
+# )
+# Existing Imports - KEEP
 import os
 import streamlit as st
 from PIL import Image
