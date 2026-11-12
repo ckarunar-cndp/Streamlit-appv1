@@ -31,6 +31,7 @@ hf_xet>=0.4.0
 # llama-index-readers-file
 llama-index
 # openai
+nltk==3.10.4
 accelerate>=0.20.0
 torch>=2.0.0
 docx2txt>=0.8
